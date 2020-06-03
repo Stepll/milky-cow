@@ -19,5 +19,6 @@ pool.query(sql, ['stepll'], (err, res) => {
   console.dir({ res });
   console.table(res.fields);
   console.table(res.rows);
+  console.table(res.rows.systemgroup);
   pool.end();
 });
