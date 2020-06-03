@@ -64,6 +64,9 @@ class Cursor {
     this.right_key = undefined;
     this.left_key = null;
     this.type_join = null;
+    this.isCreate = false;
+    this.columnIndex = null;
+    this.unique = null;
   }
 
   resolve(result) {
@@ -119,16 +122,33 @@ class Cursor {
     return this;
   }
 
+  createIndex(column, unique = false ) {
+    this.unique = unique;
+    this.columnIndex = column;
+    this.isCreate = true;
+    return this;
+  }
+
+
   then(callback) {
     // TODO: store callback to pool
     const { mode, table, columns, args } = this;
     const { whereClause, orderBy, columnName } = this;
     const { right, left_key, right_key, type_join } = this;
+    const { isCreate, unique, columnIndex } = this;
     const fields = columns.join(', ');
-    let sql = `SELECT ${fields} FROM ${table}`;
-    if (right && left_key && right_key && type_join) sql += ` ${type_join} JOIN ${right} ON ${table}.${left_key}=${right}.${right_key}`;
-    if (whereClause) sql += ` WHERE ${whereClause}`;
-    if (orderBy) sql += ` ORDER BY ${orderBy}`;
+    let sql;
+    console.log(isCreate);
+    if (isCreate) {
+      sql = `CREATE ${(unique) ? 'UNIQUE' : ''} INDEX ON ${table}(${columnIndex})`;
+    } else {
+      sql = `SELECT ${fields} FROM ${table}`;
+      if (right && left_key && right_key && type_join) sql += ` ${type_join} JOIN ${right} ON ${table}.${left_key}=${right}.${right_key}`;
+      if (whereClause) sql += ` WHERE ${whereClause}`;
+      if (orderBy) sql += ` ORDER BY ${orderBy}`;
+    }
+    console.log(sql);
+    
     this.database.query(sql, args,  (err, res) => {
       this.resolve(res);
       const { rows, cols } = this;
