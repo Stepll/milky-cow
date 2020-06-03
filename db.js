@@ -63,6 +63,7 @@ class Cursor {
     this.right = undefined;
     this.right_key = undefined;
     this.left_key = null;
+    this.type_join = null;
   }
 
   resolve(result) {
@@ -94,8 +95,8 @@ class Cursor {
     return this;
   }
 
-  join(right, left_key, right_key) {
-    //this.left = left;
+  join(right, left_key, right_key, type_join) {
+    this.type_join = type_join;
     this.right = right;
     this.left_key = left_key;
     this.right_key = right_key;
@@ -122,10 +123,10 @@ class Cursor {
     // TODO: store callback to pool
     const { mode, table, columns, args } = this;
     const { whereClause, orderBy, columnName } = this;
-    const { right, left_key, right_key } = this;
+    const { right, left_key, right_key, type_join } = this;
     const fields = columns.join(', ');
     let sql = `SELECT ${fields} FROM ${table}`;
-    if (right && left_key && right_key) sql += ` INNER JOIN ${right} ON ${table}.${left_key}=${right}.${right_key}`;
+    if (right && left_key && right_key && type_join) sql += ` ${type_join} JOIN ${right} ON ${table}.${left_key}=${right}.${right_key}`;
     if (whereClause) sql += ` WHERE ${whereClause}`;
     if (orderBy) sql += ` ORDER BY ${orderBy}`;
     this.database.query(sql, args,  (err, res) => {

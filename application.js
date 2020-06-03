@@ -22,9 +22,8 @@ console.dir({ pg });
 //   });
 
 pg.select('customer')
-  .join('cart', 'id', 'customer_id')
+  .join('cart', 'id', 'customer_id', 'RIGHT')
   .then(rows => {
     console.table(rows);
     pg.close();
   });
-  
