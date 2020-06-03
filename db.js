@@ -67,6 +67,8 @@ class Cursor {
     this.isCreate = false;
     this.columnIndex = null;
     this.unique = null;
+    this.method = null;
+    this.nameSort = null;
   }
 
   resolve(result) {
@@ -129,18 +131,32 @@ class Cursor {
     return this;
   }
 
+  using(method) {
+    this.method = method;
+    return this;
+  }
+
+  collate(nameSort) {
+    this.nameSort = nameSort;
+    return this;
+  }
+
 
   then(callback) {
     // TODO: store callback to pool
     const { mode, table, columns, args } = this;
     const { whereClause, orderBy, columnName } = this;
     const { right, left_key, right_key, type_join } = this;
-    const { isCreate, unique, columnIndex } = this;
+    const { isCreate, unique, columnIndex, method, nameSort } = this;
     const fields = columns.join(', ');
     let sql;
     console.log(isCreate);
     if (isCreate) {
-      sql = `CREATE ${(unique) ? 'UNIQUE' : ''} INDEX ON ${table}(${columnIndex})`;
+      sql = `CREATE ${(unique) ? 'UNIQUE' : ''} INDEX ON ${table}`;
+      if (method) sql += ` USING ${method} `;
+      sql += `(${columnIndex}`;
+      if (nameSort) sql += ` COLLATE "${nameSort}"`;
+      sql += `)`;
     } else {
       sql = `SELECT ${fields} FROM ${table}`;
       if (right && left_key && right_key && type_join) sql += ` ${type_join} JOIN ${right} ON ${table}.${left_key}=${right}.${right_key}`;

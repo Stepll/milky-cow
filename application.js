@@ -30,6 +30,8 @@ pg.select('customer')
 
 pg.select('customer')
   .createIndex('name', true)
+  .using('BTREE')
+  //.collate('de_DE')
   .then(rows => {
     console.table(rows);
     pg.close();
