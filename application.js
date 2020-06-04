@@ -34,8 +34,13 @@ pg.select('customer')
   //.collate('de_DE')
   .then(rows => {
     console.table(rows);
-    pg.close();
+    //pg.close();
   });
 
+
+  pg.all_fk()
+    .then(rows => {
+      console.table(rows);
+      pg.close();
+    });
   //console.log(pg.select('customer') instanceof db.cursor);
-  

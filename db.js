@@ -69,6 +69,13 @@ class Cursor {
     this.unique = null;
     this.method = null;
     this.nameSort = null;
+    this.sql_fk = `SELECT
+    t2.TABLE_NAME,
+    t3.TABLE_NAME AS ChildrenTableName
+  FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS AS t1 
+    INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS t2 ON t1.UNIQUE_CONSTRAINT_NAME = t2.CONSTRAINT_NAME
+    INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS t3 ON t1.CONSTRAINT_NAME = t3.CONSTRAINT_NAME
+  ORDER BY t2.TABLE_NAME`;
   }
 
   resolve(result) {
@@ -150,21 +157,23 @@ class Cursor {
     const { isCreate, unique, columnIndex, method, nameSort } = this;
     const fields = columns.join(', ');
     let sql;
-    console.log(isCreate);
-    if (isCreate) {
-      sql = `CREATE ${(unique) ? 'UNIQUE' : ''} INDEX ON ${table}`;
-      if (method) sql += ` USING ${method} `;
-      sql += `(${columnIndex}`;
-      if (nameSort) sql += ` COLLATE "${nameSort}"`;
-      sql += `)`;
+    if (!table) {
+      console.log('table is undefined');
+      sql = this.sql_fk;
     } else {
-      sql = `SELECT ${fields} FROM ${table}`;
-      if (right && left_key && right_key && type_join) sql += ` ${type_join} JOIN ${right} ON ${table}.${left_key}=${right}.${right_key}`;
-      if (whereClause) sql += ` WHERE ${whereClause}`;
-      if (orderBy) sql += ` ORDER BY ${orderBy}`;
+      if (isCreate) {
+        sql = `CREATE ${(unique) ? 'UNIQUE' : ''} INDEX ON ${table}`;
+        if (method) sql += ` USING ${method} `;
+        sql += `(${columnIndex}`;
+        if (nameSort) sql += ` COLLATE "${nameSort}"`;
+        sql += `)`;
+      } else {
+        sql = `SELECT ${fields} FROM ${table}`;
+        if (right && left_key && right_key && type_join) sql += ` ${type_join} JOIN ${right} ON ${table}.${left_key}=${right}.${right_key}`;
+        if (whereClause) sql += ` WHERE ${whereClause}`;
+        if (orderBy) sql += ` ORDER BY ${orderBy}`;
+      }
     }
-    console.log(sql);
-    
     this.database.query(sql, args,  (err, res) => {
       this.resolve(res);
       const { rows, cols } = this;
@@ -214,6 +223,10 @@ class Database {
 
   select(table) {
     return new Cursor(this, table);
+  }
+
+  all_fk() {
+    return new Cursor(this, null); 
   }
 
   close() {
