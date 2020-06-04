@@ -36,3 +36,6 @@ pg.select('customer')
     console.table(rows);
     pg.close();
   });
+
+  //console.log(pg.select('customer') instanceof db.cursor);
+  
