@@ -1,7 +1,8 @@
 # milky-cow
 
-all_fk console.log
-[ { table_name: 'cart', childrentablename: 'cart_product' },
-  { table_name: 'customer', childrentablename: 'cart' },
-  { table_name: 'product', childrentablename: 'product_photo' },
-  { table_name: 'product', childrentablename: 'cart_product' } ]
+git init
+git clone https://github.com/StepanKobrii18321832/milky-cow.git
+
+npm install
+
+npm start
